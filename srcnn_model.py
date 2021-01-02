@@ -9,34 +9,14 @@ from torch.utils.data import DataLoader as d_loader
 import matplotlib.pyplot as plt
 from PIL import Image
 
-class ResidualBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, activation='relu'):
-        super().__init__()
-        self.in_channels, self.out_channels, self.activation = in_channels, out_channels, activation
-        self.blocks = nn.Identity()
-        self.activate = activation_func(activation)
-        self.shortcut = nn.Identity()   
-    
-    def forward(self, x):
-        residual = x
-        if self.should_apply_shortcut: residual = self.shortcut(x)
-        x = self.blocks(x)
-        x += residual
-        x = self.activate(x)
-        return x
-    
-    @property
-    def should_apply_shortcut(self):
-        return self.in_channels != self.out_channels
-
 class SRCNN(nn.Module):
     def __init__(self):
         super(SRCNN,self).__init__()
-        self.conv0 = nn.Conv2d(3,64,kernel_size=15,padding=15//2,padding_mode='replicate')
-        self.conv0 = nn.DataParallel(self.conv0) # , device_ids=[0,1]
+        # self.conv0 = nn.Conv2d(3,64,kernel_size=15,padding=15//2,padding_mode='replicate')
+        # self.conv0 = nn.DataParallel(self.conv0) # , device_ids=[0,1]
 
-        self.relu0 = nn.ReLU()
-        self.relu0 = nn.DataParallel(self.relu0) # , device_ids=[0,1]
+        # self.relu0 = nn.ReLU()
+        # self.relu0 = nn.DataParallel(self.relu0) # , device_ids=[0,1]
 
 
 
@@ -83,8 +63,8 @@ class SRCNN(nn.Module):
 
         return out
 
-    @property
-    def should_apply_shortcut(self):
-        return self.in_channels != self.out_channels
+    # @property
+    # def should_apply_shortcut(self):
+    #     return self.in_channels != self.out_channels
 
     

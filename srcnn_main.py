@@ -85,7 +85,7 @@ def train(epoch):
         # print("===> Epoch[{}]({}/{}): Loss: {:.4f}".format(epoch, iteration, len(training_data_loader), loss.data))
 
     print("===> Epoch {} Complete: Avg. Loss: {:.4f}".format(epoch, epoch_loss / len(training_data_loader)))
-    writer.add_scalar("epoch_loss", epoch_loss / len(training_data_loader), global_step = epoch)
+    writer.add_scalar("epoch_loss", epoch_loss / len(training_data_loader), global_step = epoch) # 记log
 
 
 
@@ -117,7 +117,7 @@ for epoch in range(1, opt.epochs + 1):
     train(epoch)
     test(epoch)
     if(epoch%10==0):
-        checkpoint(epoch)
+        # checkpoint(epoch) # CZY 暂时不保存模型，看一下loss
     
     # print(optimizer.param_groups[0]['lr'])
 
