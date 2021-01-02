@@ -16,7 +16,7 @@ writer = SummaryWriter()
 parser = argparse.ArgumentParser(description='PyTorch Super Res Example')
 parser.add_argument('--upscale_factor', type=int, default=4, help="super resolution upscale factor")
 parser.add_argument('--batch_size', type=int, default=15, help='training batch size')
-parser.add_argument('--test_batch_size', type=int, default=10, help='testing batch size')
+parser.add_argument('--test_batch_size', type=int, default=15, help='testing batch size')
 parser.add_argument('--epochs', type=int, default=400, help='number of epochs to train for')
 parser.add_argument('--lr', type=float, default=0.01, help='Learning Rate. Default=0.01')
 # parser.add_argument('--cuda', action='store_true', help='use cuda?')
@@ -24,11 +24,15 @@ parser.add_argument('--cuda', type=bool, default=True, help='use cuda?')
 parser.add_argument('--threads', type=int, default=0, help='number of threads for data loader to use')
 parser.add_argument('--seed', type=int, default=1, help='random seed to use. Default=123')
 opt = parser.parse_args()
+
 writer.add_text('batch_size', str(opt.batch_size))
 writer.add_text('test_batch_size', str(opt.test_batch_size))
 writer.add_text('epochs', str(opt.epochs))
 writer.add_text('lr_init', str(opt.lr))
-
+writer.add_text('conv1', "3-32-13")
+writer.add_text('conv2', "32-16-1")
+writer.add_text('conv3', "16-3-1")
+writer.add_text('Version', "V2.0")
 print(opt)
 
 # 是否用GPU
@@ -84,7 +88,7 @@ def train(epoch):
         # print("===> Epoch[{}]({}/{}): Loss: {:.4f}".format(epoch, iteration, len(training_data_loader), loss.data[0])) # CZY
         # print("===> Epoch[{}]({}/{}): Loss: {:.4f}".format(epoch, iteration, len(training_data_loader), loss.data))
 
-    print("===> Epoch {} Complete: Avg. Loss: {:.4f}".format(epoch, epoch_loss / len(training_data_loader)))
+    print("===> Epoch {} Complete: Avg. Loss: {:.5f}".format(epoch, epoch_loss / len(training_data_loader)))
     writer.add_scalar("epoch_loss", epoch_loss / len(training_data_loader), global_step = epoch) # 记log
 
 
@@ -92,6 +96,7 @@ def train(epoch):
 
 def test(epoch):
     avg_psnr = 0
+    avg_test_loss = 0
     for batch in testing_data_loader:
         input, target = Variable(batch[0]), Variable(batch[1])
         if use_cuda:
@@ -103,8 +108,11 @@ def test(epoch):
         # psnr = 10 * log10(1 / mse.data[0]) # CZY
         psnr = 10 * log10(1 / mse.data)
         avg_psnr += psnr
-    print("===> Avg. PSNR: {:.4f} dB".format(avg_psnr / len(testing_data_loader)))
+        avg_test_loss += mse
+
+    print("===> Avg. PSNR: {:.5f} dB".format(avg_psnr / len(testing_data_loader)))
     writer.add_scalar("test_avg_PSNR", avg_psnr / len(testing_data_loader), global_step=epoch)
+    writer.add_scalar("test_avg_loss", avg_test_loss / len(testing_data_loader), global_step=epoch)
 
 
 def checkpoint(epoch):
@@ -112,15 +120,15 @@ def checkpoint(epoch):
     torch.save(srcnn, model_out_path)
     print("Checkpoint saved to {}".format(model_out_path))
 
+
 for epoch in range(1, opt.epochs + 1):
     scheduler.step()
     train(epoch)
     test(epoch)
     if(epoch%10==0):
-        # checkpoint(epoch) # CZY 暂时不保存模型，看一下loss
+        checkpoint(epoch) # CZY 暂时不保存模型，看一下loss
     
     # print(optimizer.param_groups[0]['lr'])
-
 
 writer.close()
 

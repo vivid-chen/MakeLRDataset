@@ -20,7 +20,7 @@ class SRCNN(nn.Module):
 
 
 
-        self.conv1 = nn.Conv2d(3,32,kernel_size=15,padding=15//2,padding_mode='replicate')
+        self.conv1 = nn.Conv2d(3,32,kernel_size=13,padding=13//2,padding_mode='replicate')
         self.conv1 = nn.DataParallel(self.conv1) # , device_ids=[0,1]
 
         # self.BN1 = nn.BatchNorm2d(64)
@@ -42,7 +42,7 @@ class SRCNN(nn.Module):
         self.pooling2 = nn.AvgPool2d(2,2) # AvgPool2d
         self.pooling2 = nn.DataParallel(self.pooling2) # , device_ids=[0,1]
 
-        self.conv3 = nn.Conv2d(16,3,kernel_size=3,padding=3//2,padding_mode='replicate')
+        self.conv3 = nn.Conv2d(16,3,kernel_size=1,padding=1//2,padding_mode='replicate')
         self.conv3 = nn.DataParallel(self.conv3) # , device_ids=[0,1]
         
     def forward(self,x):
