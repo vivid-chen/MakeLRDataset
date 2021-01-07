@@ -1,6 +1,7 @@
 from __future__ import print_function
 import argparse
 from math import log10
+import os
 
 from tensorboardX import SummaryWriter 
 import torch
@@ -11,13 +12,15 @@ from torch.utils.data import DataLoader
 from srcnn_data import get_training_set, get_test_set
 from srcnn_model import SRCNN
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "0, 1"
+
 writer = SummaryWriter()
 
 parser = argparse.ArgumentParser(description='PyTorch Super Res Example')
 parser.add_argument('--upscale_factor', type=int, default=4, help="super resolution upscale factor")
 parser.add_argument('--batch_size', type=int, default=15, help='training batch size')
 parser.add_argument('--test_batch_size', type=int, default=15, help='testing batch size')
-parser.add_argument('--epochs', type=int, default=400, help='number of epochs to train for')
+parser.add_argument('--epochs', type=int, default=200, help='number of epochs to train for')
 parser.add_argument('--lr', type=float, default=0.01, help='Learning Rate. Default=0.01')
 # parser.add_argument('--cuda', action='store_true', help='use cuda?')
 parser.add_argument('--cuda', type=bool, default=True, help='use cuda?')
@@ -32,7 +35,7 @@ writer.add_text('lr_init', str(opt.lr))
 writer.add_text('conv1', "3-32-13")
 writer.add_text('conv2', "32-16-1")
 writer.add_text('conv3', "16-3-1")
-writer.add_text('Version', "V2.0")
+writer.add_text('Version', "V1.0")
 print(opt)
 
 # 是否用GPU
@@ -53,7 +56,7 @@ training_data_loader = DataLoader(dataset=train_set, num_workers=opt.threads, ba
 testing_data_loader = DataLoader(dataset=test_set, num_workers=opt.threads, batch_size=opt.test_batch_size, shuffle=False)
 
 
-srcnn = SRCNN()
+srcnn = nn.DataParallel(srcnn) # 多GPU
 criterion = nn.MSELoss()
 
 
