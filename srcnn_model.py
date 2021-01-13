@@ -6,65 +6,74 @@ import torchvision.transforms as transforms
 from torch.autograd import Variable
 import torchvision.datasets as d_sets
 from torch.utils.data import DataLoader as d_loader
+from torch.utils.checkpoint import checkpoint
 import matplotlib.pyplot as plt
 from PIL import Image
+
+# device_0 = torch.device("cuda:0")
+# device_1 = torch.device("cuda:1")
 
 class SRCNN(nn.Module):
     def __init__(self):
         super(SRCNN,self).__init__()
-        # self.conv0 = nn.Conv2d(3,64,kernel_size=15,padding=15//2,padding_mode='replicate')
-        # self.conv0 = nn.DataParallel(self.conv0) # , device_ids=[0,1]
+        self.conv0 = nn.Conv2d(3,64,kernel_size=5,padding=5//2,padding_mode='replicate')
 
-        # self.relu0 = nn.ReLU()
-        # self.relu0 = nn.DataParallel(self.relu0) # , device_ids=[0,1]
+        self.relu0 = nn.ReLU(inplace=True)
 
-
-
-        self.conv1 = nn.Conv2d(3,32,kernel_size=13,padding=13//2,padding_mode='replicate')
-        # self.conv1 = nn.DataParallel(self.conv1) # , device_ids=[0,1]
-
-        # self.BN1 = nn.BatchNorm2d(64)
-        # self.BN1 = nn.DataParallel(self.BN1)
-        self.relu1 = nn.ReLU()
-        # self.relu1 = nn.DataParallel(self.relu1) # , device_ids=[0,1]
+        self.conv1 = nn.Conv2d(3,64,kernel_size=13,padding=13//2,padding_mode='replicate')
+        self.relu1 = nn.ReLU(inplace=True)
 
         self.pooling1 = nn.AvgPool2d(2,2) # AvgPool2d
-        # self.pooling1 = nn.DataParallel(self.pooling1) # , device_ids=[0,1]
 
-        self.conv2 = nn.Conv2d(32,16,kernel_size=1,padding=1//2,padding_mode='replicate')
-        # self.conv2 = nn.DataParallel(self.conv2) # , device_ids=[0,1]
-
-        # self.BN2 = nn.BatchNorm2d(32)
-        # self.BN2 = nn.DataParallel(self.BN2)
-        self.relu2 = nn.ReLU()
-        # self.relu2 = nn.DataParallel(self.relu2) # , device_ids=[0,1]
+        self.conv2 = nn.Conv2d(64,32,kernel_size=1,padding=1//2,padding_mode='replicate')
+        self.relu2 = nn.ReLU(inplace=True)
 
         self.pooling2 = nn.AvgPool2d(2,2) # AvgPool2d
-        # self.pooling2 = nn.DataParallel(self.pooling2) # , device_ids=[0,1]
 
-        self.conv3 = nn.Conv2d(16,3,kernel_size=1,padding=1//2,padding_mode='replicate')
-        # self.conv3 = nn.DataParallel(self.conv3) # , device_ids=[0,1]
+        self.conv3 = nn.Conv2d(32,3,kernel_size=1,padding=1//2,padding_mode='replicate')
+
+    def run_first_half(self, *args):
+        x = args[0]
+
+        x = self.relu0(self.conv0(x))
+        x = self.relu1(self.conv1(x))
+        x = self.pooling1(x)
+
+        return x
+    
+    def run_second_half(self, *args):
+        x = args[0]
+
+        x = self.relu2(self.conv2(x))
+        x = self.pooling2(x)
         
+        return x
+
+
+
     def forward(self,x):
-        # out = self.conv0(x)
-        # out = self.relu0(out)
+        
+        # x = self.relu0(self.conv0(x))
 
-        out = self.conv1(x)
-        out = self.relu1(out)
+        x = self.relu1(self.conv1(x))
 
-        out = self.pooling1(out)
+        x = self.pooling1(x)
 
-        out = self.conv2(out)
-        out = self.relu2(out)
+        x = self.relu2(self.conv2(x))
 
-        out = self.pooling2(out)
+        x = self.pooling2(x)
 
-        out = self.conv3(out)
+        x = self.conv3(x)
 
-        return out
+        return x
 
-    # @property
-    # def should_apply_shortcut(self):
-    #     return self.in_channels != self.out_channels
+
+        # x = checkpoint(self.run_first_half, x)
+        # x = checkpoint(self.run_second_half, x)
+        # x = self.conv3(x)
+        # # x.sum.backward()
+        # return x
+
+
 
     

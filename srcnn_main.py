@@ -18,24 +18,27 @@ writer = SummaryWriter()
 
 parser = argparse.ArgumentParser(description='PyTorch Super Res Example')
 parser.add_argument('--upscale_factor', type=int, default=4, help="super resolution upscale factor")
-parser.add_argument('--batch_size', type=int, default=15, help='training batch size')
-parser.add_argument('--test_batch_size', type=int, default=15, help='testing batch size')
-parser.add_argument('--epochs', type=int, default=200, help='number of epochs to train for')
+parser.add_argument('--batch_size', type=int, default=12, help='training batch size')
+parser.add_argument('--test_batch_size', type=int, default=8, help='testing batch size')
+parser.add_argument('--epochs', type=int, default=300, help='number of epochs to train for')
 parser.add_argument('--lr', type=float, default=0.01, help='Learning Rate. Default=0.01')
 # parser.add_argument('--cuda', action='store_true', help='use cuda?')
 parser.add_argument('--cuda', type=bool, default=True, help='use cuda?')
 parser.add_argument('--threads', type=int, default=0, help='number of threads for data loader to use')
-parser.add_argument('--seed', type=int, default=1, help='random seed to use. Default=123')
+parser.add_argument('--seed', type=int, default=1, help='random seed to use. Default=1')
 opt = parser.parse_args()
 
 writer.add_text('batch_size', str(opt.batch_size))
 writer.add_text('test_batch_size', str(opt.test_batch_size))
 writer.add_text('epochs', str(opt.epochs))
 writer.add_text('lr_init', str(opt.lr))
-writer.add_text('conv1', "3-32-13")
-writer.add_text('conv2', "32-16-1")
-writer.add_text('conv3', "16-3-1")
-writer.add_text('Version', "V1.0")
+writer.add_text('lr_step', "30")
+writer.add_text('lr_gamma', "0.2")
+# writer.add_text('conv0', "3-128-5")
+writer.add_text('conv1', "3-64-13")
+writer.add_text('conv2', "64-32-1")
+writer.add_text('conv3', "32-3-1")
+writer.add_text('Version', "V13.0")
 print(opt)
 
 # 是否用GPU
@@ -55,7 +58,7 @@ test_set = get_test_set(opt.upscale_factor)
 training_data_loader = DataLoader(dataset=train_set, num_workers=opt.threads, batch_size=opt.batch_size, shuffle=True)
 testing_data_loader = DataLoader(dataset=test_set, num_workers=opt.threads, batch_size=opt.test_batch_size, shuffle=False)
 
-
+srcnn = SRCNN()
 srcnn = nn.DataParallel(srcnn) # 多GPU
 criterion = nn.MSELoss()
 
@@ -65,7 +68,7 @@ if(use_cuda):
 	criterion = criterion.cuda()
 
 optimizer = optim.Adam(srcnn.parameters(),lr=opt.lr)
-scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1) # 优化器
+scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.2) # 优化器
 
 def train(epoch):
     epoch_loss = 0
@@ -91,7 +94,7 @@ def train(epoch):
         # print("===> Epoch[{}]({}/{}): Loss: {:.4f}".format(epoch, iteration, len(training_data_loader), loss.data[0])) # CZY
         # print("===> Epoch[{}]({}/{}): Loss: {:.4f}".format(epoch, iteration, len(training_data_loader), loss.data))
 
-    print("===> Epoch {} Complete: Avg. Loss: {:.5f}".format(epoch, epoch_loss / len(training_data_loader)))
+    print("===> Epoch {} Complete: Avg. Loss: {:.6f}".format(epoch, epoch_loss / len(training_data_loader)))
     writer.add_scalar("epoch_loss", epoch_loss / len(training_data_loader), global_step = epoch) # 记log
 
 

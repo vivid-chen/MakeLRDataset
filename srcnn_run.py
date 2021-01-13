@@ -12,9 +12,9 @@ import numpy as np
 
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch Super Res Example')
-parser.add_argument('--input_image', type=str, default = '/media/omnisky/8TDisk/CZY/MakeLRDataset/dataset/RealSR/images/val', help='input image to use')
-parser.add_argument('--model', type=str, default = '/media/omnisky/8TDisk/CZY/MakeLRDataset/model/model_epoch_200.pth', help='model file to use')
-parser.add_argument('--output_filename', type=str, default = '/media/omnisky/8TDisk/CZY/MakeLRDataset/dataset/RealSR/images/val_result', help='where to save the output image')
+parser.add_argument('--input_image', type=str, default = '/media/lab1008/A2FE99FDBDECF1EA/CZY/MakeLRDataset/dataset/RealSR/images/HR/003', help='input image to use')
+parser.add_argument('--model', type=str, default = '/media/lab1008/A2FE99FDBDECF1EA/CZY/MakeLRDataset/model/model_epoch_300.pth', help='model file to use')
+parser.add_argument('--output_filename', type=str, default = '/media/lab1008/A2FE99FDBDECF1EA/CZY/MakeLRDataset/dataset/RealSR/images/LR/003', help='where to save the output image')
 parser.add_argument('--scale_factor', type=float, default = 4, help='factor by which super resolution needed')
 
 parser.add_argument('--cuda', action='store_true', help='use cuda')
