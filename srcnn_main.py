@@ -32,13 +32,13 @@ writer.add_text('batch_size', str(opt.batch_size))
 writer.add_text('test_batch_size', str(opt.test_batch_size))
 writer.add_text('epochs', str(opt.epochs))
 writer.add_text('lr_init', str(opt.lr))
-writer.add_text('lr_step', "30")
-writer.add_text('lr_gamma', "0.2")
-# writer.add_text('conv0', "3-128-5")
-writer.add_text('conv1', "3-64-13")
-writer.add_text('conv2', "64-32-1")
-writer.add_text('conv3', "32-3-1")
-writer.add_text('Version', "V13.0")
+writer.add_text('lr_step', "50")
+writer.add_text('lr_gamma', "0.1")
+writer.add_text('conv0', "3-64-13")
+writer.add_text('conv1', "64-32-1")
+writer.add_text('conv2', "32-16-1")
+writer.add_text('conv3', "16-3-1")
+writer.add_text('Version', "V17.0")
 print(opt)
 
 # 是否用GPU
@@ -68,7 +68,7 @@ if(use_cuda):
 	criterion = criterion.cuda()
 
 optimizer = optim.Adam(srcnn.parameters(),lr=opt.lr)
-scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.2) # 优化器
+scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1) # 优化器
 
 def train(epoch):
     epoch_loss = 0
